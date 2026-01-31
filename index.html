@@ -172,6 +172,47 @@
         </div>
 
     </main>
+    <script>
+(async () => {
+    const repo = "AntiParty/obs-live-delay-download";
+    const badge = document.getElementById("versionBadge");
+    const btn = document.getElementById("downloadBtn");
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${repo}/releases`);
+        if (!res.ok) throw new Error("GitHub API error");
+
+        const releases = await res.json();
+
+        // Get newest non-draft release
+        const release = releases.find(r => !r.draft);
+        if (!release) throw new Error("No valid releases");
+
+        // Prefer Windows installer
+        let asset =
+            release.assets.find(a => a.name.toLowerCase().endsWith(".exe")) ||
+            release.assets.find(a => a.name.toLowerCase().endsWith(".zip"));
+
+        if (!asset) throw new Error("No downloadable asset found");
+
+        // UI updates
+        badge.textContent = release.tag_name || "Latest";
+        badge.classList.toggle("badge-beta", release.prerelease);
+
+        btn.disabled = false;
+        btn.onclick = () => window.location.href = asset.browser_download_url;
+        btn.classList.remove("opacity-60", "cursor-not-allowed");
+        btn.classList.add("hover:bg-zinc-200");
+        btn.textContent = "Download Installer";
+
+    } catch (err) {
+        console.error(err);
+        badge.textContent = "Unavailable";
+        btn.textContent = "Download unavailable";
+    }
+})();
+</script>
+
 
 </body>
 </html>
